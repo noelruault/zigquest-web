@@ -1,8 +1,8 @@
 # ZigQuest — web builds
 
-Public, auto-deployed builds of **ZigQuest** — a Terraria-inspired 2D pixel-art game where you
-learn the Zig programming language by writing code that changes the game world. Runs entirely in
-the browser: no build step, no frameworks, no dependencies.
+Public, auto-deployed builds of **ZigQuest** — a 2D side-scrolling pixel-art sandbox game where you
+learn the Zig programming language by writing code that changes the game world. Runs entirely in the
+browser: no build step, no frameworks, no dependencies.
 
 ### ▶ Play & track progress
 **https://noelruault.github.io/zigquest-web/**
@@ -10,13 +10,13 @@ the browser: no build step, no frameworks, no dependencies.
 ## What this repo is
 
 This repo holds only the **built, minified game bundle**, published automatically. The source code
-lives in a separate **private** repository and is developed by an autonomous "improvement loop" that
-lands one polished mechanic per iteration.
+lives in a separate **private** repository and is developed by an autonomous loop that lands one
+polished mechanic per iteration.
 
 The site serves a new version on every iteration:
 
-- **`/dev`** — latest in-flight build (refreshes each loop iteration)
-- **`/stable`** — latest milestone-approved build (updates when a milestone is merged)
+- **`/dev`** — latest in-flight build (refreshes each iteration)
+- **`/stable`** — latest milestone-approved build
 - **`/snap/<commit>/`** — a frozen, playable build for every version (browsable history)
 
 …plus a mobile-friendly picker at the root showing milestone progress and the full version list.
