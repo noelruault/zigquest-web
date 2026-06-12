@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ZigQuest — progress</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.5 -apple-system, system-ui, sans-serif;
+         background: #14161c; color: #e7ecf3; padding: 16px 14px 48px;
+         padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
+  h1 { font-size: 20px; margin: 4px 0 2px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em;
+       color: #8b95a7; margin: 26px 0 10px; }
+  h3 { font-size: 14px; margin: 0 0 8px; color: #b9c2d0; }
+  .sub { color: #8b95a7; font-size: 13px; margin: 0 0 4px; }
+  .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .slot { background: #1c2029; border: 1px solid #2a303c; border-radius: 12px; padding: 14px; }
+  .slot.off { opacity: .5; }
+  .btn { display: block; text-align: center; text-decoration: none; border-radius: 10px;
+         padding: 12px; margin-top: 8px; font-weight: 600; }
+  .btn.play { background: #2f6f4f; color: #eafff2; }
+  .btn.vt   { background: #2a2f3a; color: #cdd6e4; }
+  .ms { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums;
+        padding: 4px 0; }
+  .ms-bar { font-family: ui-monospace, Menlo, monospace; letter-spacing: -1px; color: #50fa7b; }
+  .ms-name { flex: 1; color: #cdd6e4; font-size: 14px; }
+  .ms-n { color: #8b95a7; font-size: 13px; }
+  ul.history { list-style: none; padding: 0; margin: 0; }
+  ul.history li { background: #1c2029; border: 1px solid #2a303c; border-radius: 10px;
+                  padding: 10px 12px; margin-bottom: 8px; }
+  .h-top { display: flex; align-items: center; gap: 8px; }
+  .h-msg { font-size: 14px; margin: 4px 0 6px; color: #dbe3ef; }
+  .h-links a { color: #8be9fd; text-decoration: none; margin-right: 14px; font-size: 14px; }
+  code { font-family: ui-monospace, Menlo, monospace; color: #ffd93b; font-size: 13px; }
+  .muted { color: #6b7384; font-size: 12px; }
+  .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; font-weight: 700; }
+  .tag-dev { background: #2a3550; color: #9db8ff; }
+  .tag-stable { background: #2f4a36; color: #8fe0a8; }
+  footer { color: #6b7384; font-size: 12px; margin-top: 28px; }
+  footer code { color: #8b95a7; }
+</style>
+</head><body>
+  <h1>ZigQuest — autonomous progress</h1>
+  <p class="sub">Junk-Jack-inspired polish loop. Each commit is a frozen, playable build.</p>
+
+  <h2>Play latest</h2>
+  <div class="slots"><div class="slot">
+       <h3>dev</h3>
+       <a class="btn play" href="./dev/index.html">▶ Play dev</a>
+       <a class="btn vt"   href="./dev/index.html?vt=1">▦ Test sheet</a>
+     </div><div class="slot off"><h3>stable</h3><span class="muted">not published yet</span></div></div>
+  <p class="sub" style="margin-top:8px"><b>dev</b> = loop/dev (live, in-flight) · <b>stable</b> = main (gated, approved)</p>
+
+  <h2>Milestone progress</h2><div class="ms"><span class="ms-bar">████████████</span>
+     <span class="ms-name">S0 — Setup</span>
+     <span class="ms-n">1/1</span></div><div class="ms"><span class="ms-bar">████████████</span>
+     <span class="ms-name">Milestone 1 — Combat &amp; monster physics</span>
+     <span class="ms-n">3/3</span></div><div class="ms"><span class="ms-bar">░░░░░░░░░░░░</span>
+     <span class="ms-name">Milestone 2 — Items</span>
+     <span class="ms-n">0/3</span></div><div class="ms"><span class="ms-bar">░░░░░░░░░░░░</span>
+     <span class="ms-name">Milestone 3 — Water</span>
+     <span class="ms-n">0/3</span></div><div class="ms"><span class="ms-bar">░░░░░░░░░░░░</span>
+     <span class="ms-name">Milestone 4 — Juice / smoothness</span>
+     <span class="ms-n">0/3</span></div>
+
+  <h2>History — every version (1)</h2>
+  <ul class="history"><li>
+     <div class="h-top"><span class="tag tag-dev">dev</span>
+       <code>591c664</code><span class="muted">2026-06-12 14:02 UTC</span></div>
+     <div class="h-msg">ci: deploy source-free public bundle to zigquest-web (private repo stays private)</div>
+     <div class="h-links">
+       <a href="./snap/591c664/index.html">▶ play</a>
+       <a href="./snap/591c664/index.html?vt=1">▦ tests</a>
+     </div>
+   </li></ul>
+
+  <footer>
+    Last build: <code>dev/591c664</code> — ci: deploy source-free public bundle to zigquest-web (private repo stays private)<br>
+    2026-06-12 14:02 UTC · tap “Test sheet” to run the visual PASS/FAIL grid live in your browser.
+  </footer>
+</body></html>
