@@ -1,0 +1,1143 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <!-- Installable as a fullscreen web app (Add to Home Screen). apple-mobile-web-app-capable is what
+         makes iOS launch it WITHOUT Safari chrome; without it "Add to Home Screen" is just a bookmark. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ZigQuest">
+    <meta name="theme-color" content="#14161c">
+    <title>ZigQuest</title>
+    <style>
+        :root {
+            --ui-scale: 1;
+            --hud-gap: 5px;
+            --hud-font: calc(11px * var(--ui-scale));
+            --hb-pad-y: calc(3px * var(--ui-scale));
+            --hb-pad-x: calc(7px * var(--ui-scale));
+            --hb-radius: calc(4px * var(--ui-scale));
+            --hpw: calc(76px * var(--ui-scale));
+            --hph: calc(6px * var(--ui-scale));
+            --slot: calc(38px * var(--ui-scale));
+            --slot-font: calc(9px * var(--ui-scale));
+            --slot-count: calc(8px * var(--ui-scale));
+            --ctrl-font: calc(9px * var(--ui-scale));
+            --dlg-pad-y: calc(11px * var(--ui-scale));
+            --dlg-pad-x: calc(15px * var(--ui-scale));
+            --dlg-title: calc(10px * var(--ui-scale));
+            --dlg-text: calc(12px * var(--ui-scale));
+            --dlg-choice: calc(10px * var(--ui-scale));
+        }
+
+        @media (min-width: 1600px),
+        (min-height: 900px) {
+            :root {
+                --ui-scale: 1.2;
+            }
+        }
+
+        @media (min-width: 2200px),
+        (min-height: 1300px) {
+            :root {
+                --ui-scale: 1.4;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            background: #0a0a12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #f8f8f2
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+            width: 100%;
+            height: 100%
+        }
+
+        #wrap {
+            position: relative;
+            width: 100vw;
+            height: 100dvh;
+            max-width: 177.78vh;
+            max-height: 56.25vw;
+            overflow: hidden
+        }
+
+        #hud {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 5;
+            pointer-events: none;
+            font-size: var(--hud-font)
+        }
+
+        #hud-left,
+        #hud-right {
+            display: flex;
+            gap: var(--hud-gap);
+            pointer-events: auto
+        }
+
+        #hud-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            display: flex;
+            gap: var(--hud-gap)
+        }
+
+        .hb {
+            background: rgba(12, 12, 22, .9);
+            padding: var(--hb-pad-y) var(--hb-pad-x);
+            border-radius: var(--hb-radius);
+            border: 1px solid rgba(60, 62, 80, .6);
+            white-space: nowrap
+        }
+
+        #fps-h .fps-v {
+            font-weight: bold;
+            color: #50fa7b
+        }
+
+        #fps-h.fps-ok .fps-v {
+            color: #50fa7b
+        }
+
+        #fps-h.fps-mid .fps-v {
+            color: #f1fa8c
+        }
+
+        #fps-h.fps-low .fps-v {
+            color: #ff5555
+        }
+
+        .hp-bar {
+            display: inline-block;
+            width: var(--hpw);
+            height: var(--hph);
+            background: #222;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-left: 3px;
+            overflow: hidden
+        }
+
+        .hp-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width .2s
+        }
+
+        #hotbar {
+            position: absolute;
+            bottom: calc(5px * var(--ui-scale));
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: calc(2px * var(--ui-scale));
+            z-index: 5
+        }
+
+        .hs {
+            width: var(--slot);
+            height: var(--slot);
+            background: rgba(12, 12, 22, .9);
+            border: 2px solid #222;
+            border-radius: calc(4px * var(--ui-scale));
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--slot-font);
+            color: #333;
+            transition: border-color .12s
+        }
+
+        .hs.sel {
+            border-color: #50fa7b;
+            box-shadow: 0 0 7px rgba(80, 250, 123, .3)
+        }
+
+        .hs .ct {
+            position: absolute;
+            bottom: 0;
+            right: 2px;
+            font-size: var(--slot-count);
+            color: #f8f8f2;
+            text-shadow: 0 1px 2px #000
+        }
+
+        #ctrl-bar {
+            position: absolute;
+            bottom: calc(47px * var(--ui-scale));
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(90, 100, 140, .6);
+            font-size: var(--ctrl-font);
+            text-align: center;
+            pointer-events: none;
+            z-index: 5;
+            white-space: nowrap
+        }
+
+        #joy-zone {
+            display: none;
+            /* FIXED to the viewport, NOT absolute inside #wrap. #wrap is letterboxed to
+               max-height:56.25vw (~219px tall on a portrait phone) with overflow:hidden, which clipped
+               the controls into a thin centre stripe — the reason touch movement "didn't work". Fixed
+               anchors them to the real screen edges (and escapes the clip; #wrap has no transform). */
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 45vw;
+            height: 50vh;
+            z-index: 30;
+            touch-action: none
+        }
+
+        #joy-base {
+            display: none;
+            position: absolute;
+            width: 28vmin;
+            height: 28vmin;
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 50%;
+            background: rgba(80, 250, 123, .06);
+            border: 2px solid rgba(80, 250, 123, .18);
+            transform: translate(-50%, -50%);
+            pointer-events: none
+        }
+
+        #joy-thumb {
+            position: absolute;
+            width: 11vmin;
+            height: 11vmin;
+            max-width: 48px;
+            max-height: 48px;
+            border-radius: 50%;
+            background: rgba(80, 250, 123, .3);
+            border: 2px solid rgba(80, 250, 123, .5);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none
+        }
+
+        #act-zone {
+            display: none;
+            position: fixed;
+            right: 2%;
+            bottom: calc(16px + env(safe-area-inset-bottom));
+            z-index: 30;
+            width: 44vmin;
+            height: 32vmin;
+            max-width: 180px;
+            max-height: 140px;
+            pointer-events: none
+        }
+
+        .ab {
+            pointer-events: auto;
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .5)
+        }
+
+        .ab:active {
+            transform: scale(.92);
+            filter: brightness(1.3)
+        }
+
+        #btn-atk {
+            width: 17vmin;
+            height: 17vmin;
+            min-width: 54px;
+            min-height: 54px;
+            max-width: 70px;
+            max-height: 70px;
+            background: rgba(255, 70, 70, .18);
+            border: 2.5px solid rgba(255, 85, 85, .45);
+            right: 0;
+            bottom: 0;
+            font-size: min(5.5vmin, 22px);
+            color: #ff6666
+        }
+
+        #btn-jmp {
+            width: 14vmin;
+            height: 14vmin;
+            min-width: 44px;
+            min-height: 44px;
+            max-width: 58px;
+            max-height: 58px;
+            background: rgba(80, 250, 123, .12);
+            border: 2.5px solid rgba(80, 250, 123, .35);
+            right: calc(18vmin + 6px);
+            bottom: 2vmin;
+            font-size: min(4.5vmin, 18px);
+            color: #50fa7b
+        }
+
+        #btn-int {
+            width: 11vmin;
+            height: 11vmin;
+            min-width: 36px;
+            min-height: 36px;
+            max-width: 46px;
+            max-height: 46px;
+            background: rgba(189, 147, 249, .12);
+            border: 2px solid rgba(189, 147, 249, .3);
+            right: calc(10vmin + 4px);
+            bottom: calc(16vmin + 8px);
+            font-size: min(3.5vmin, 14px);
+            color: #bd93f9
+        }
+
+        #btn-mine {
+            width: 11vmin;
+            height: 11vmin;
+            min-width: 36px;
+            min-height: 36px;
+            max-width: 46px;
+            max-height: 46px;
+            background: rgba(241, 250, 140, .12);
+            border: 2px solid rgba(241, 250, 140, .3);
+            right: 0;
+            bottom: calc(18vmin + 8px);
+            font-size: min(3.5vmin, 14px);
+            color: #f1fa8c
+        }
+
+        #mob-util {
+            display: none;
+            position: fixed;
+            top: calc(8px + env(safe-area-inset-top));
+            right: calc(6px + env(safe-area-inset-right));
+            gap: 3px;
+            z-index: 30
+        }
+
+        .mu {
+            width: 30px;
+            height: 30px;
+            background: rgba(12, 12, 22, .85);
+            border: 1px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            user-select: none;
+            touch-action: none
+        }
+
+        .mu:active {
+            background: rgba(80, 250, 123, .25)
+        }
+
+        @media(hover:none)and(pointer:coarse) {
+
+            #joy-zone,
+            #act-zone {
+                display: block
+            }
+
+            #mob-util {
+                display: flex
+            }
+
+            #ctrl-bar {
+                display: none
+            }
+
+            #hotbar .hs {
+                width: min(9.5vw, 40px);
+                height: min(9.5vw, 40px)
+            }
+
+            #hud {
+                font-size: min(2.8vw, var(--hud-font))
+            }
+        }
+
+        /* ?platform=mobile override for desktop testing */
+        body.force-mobile #joy-zone,
+        body.force-mobile #act-zone { display: block }
+        body.force-mobile #mob-util { display: flex }
+        body.force-mobile #ctrl-bar { display: none }
+        body.force-mobile #joy-zone { outline: 2px dashed rgba(80,250,123,.2) }
+
+        /* Portrait rotation prompt — covers the screen so the unplayable 16:9 strip is never shown. */
+        #rotate-prompt {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            text-align: center;
+            padding: 28px;
+            background: #14161c;
+            color: #e7ecf3;
+            font: 16px/1.6 -apple-system, system-ui, sans-serif
+        }
+
+        #rotate-prompt .rp-icon { font-size: 56px }
+
+        /* real touch devices in portrait */
+        @media (hover:none) and (pointer:coarse) and (orientation: portrait) {
+            #rotate-prompt { display: flex }
+        }
+
+        /* desktop testing via ?platform=mobile in a portrait window */
+        @media (orientation: portrait) {
+            body.force-mobile #rotate-prompt { display: flex }
+        }
+
+        .modal {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+            background: rgba(4, 4, 10, .93);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(2px)
+        }
+
+        .modal.open {
+            display: flex;
+            animation: mFadeIn .1s ease
+        }
+
+        @keyframes mFadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+        .mi {
+            background: linear-gradient(180deg, #181828, #14142a);
+            border: 1px solid rgba(60, 62, 80, .6);
+            border-radius: 10px;
+            max-width: 93%;
+            max-height: 88%;
+            overflow: auto;
+            padding: 16px;
+            position: relative;
+            box-shadow: 0 6px 28px rgba(0, 0, 0, .5)
+        }
+
+        .mc {
+            position: absolute;
+            top: 7px;
+            right: 11px;
+            cursor: pointer;
+            font-size: 15px;
+            color: #ff5555;
+            z-index: 2
+        }
+
+        .mt {
+            font-size: 14px;
+            color: #50fa7b;
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: .8px
+        }
+
+        #editor .mi {
+            width: 720px;
+            max-width: 96%
+        }
+
+        #ew {
+            position: relative;
+            height: 220px;
+            border: 1px solid #2a2a40;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 7px 0;
+            background: #0b0b18
+        }
+
+        #ep,
+        #et {
+            position: absolute;
+            inset: 0;
+            margin: 0;
+            padding: 7px 7px 7px 38px;
+            font: 12.5px/1.5 'Courier New', monospace;
+            white-space: pre;
+            overflow: auto;
+            tab-size: 4
+        }
+
+        #ep {
+            color: #f8f8f2;
+            pointer-events: none;
+            z-index: 1
+        }
+
+        #et {
+            color: transparent;
+            caret-color: #f8f8f2;
+            background: transparent;
+            border: none;
+            resize: none;
+            outline: none;
+            z-index: 2;
+            -webkit-text-fill-color: transparent
+        }
+
+        #el {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 32px;
+            padding: 7px 3px;
+            text-align: right;
+            font: 12.5px/1.5 'Courier New', monospace;
+            color: #3a3a50;
+            background: rgba(18, 18, 30, .7);
+            z-index: 3;
+            pointer-events: none;
+            overflow: hidden;
+            height: 100%
+        }
+
+        #eo {
+            background: #0b0b18;
+            border: 1px solid #2a2a40;
+            border-radius: 4px;
+            padding: 7px;
+            font-size: 11px;
+            max-height: 75px;
+            overflow-y: auto;
+            margin-top: 5px;
+            white-space: pre-wrap
+        }
+
+        .eb {
+            background: #222238;
+            color: #f8f8f2;
+            border: 1px solid #3a3a50;
+            padding: 5px 13px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            margin: 2px;
+            transition: all .12s
+        }
+
+        .eb:hover {
+            background: #3a3a50
+        }
+
+        .eb.pr {
+            background: linear-gradient(135deg, #50fa7b, #38c870);
+            color: #080818;
+            font-weight: bold;
+            border: none
+        }
+
+        .eb.pr:hover {
+            background: linear-gradient(135deg, #68ff92, #50fa7b)
+        }
+
+        #ed {
+            color: #bd93f9;
+            font-size: 11px;
+            margin-bottom: 3px;
+            line-height: 1.4
+        }
+
+        #eh {
+            color: #4a4a60;
+            font-size: 10px;
+            margin-top: 3px;
+            cursor: pointer
+        }
+
+        #e-mats {
+            display: none;
+            background: rgba(12, 12, 22, .6);
+            border: 1px solid rgba(60, 62, 80, .3);
+            border-radius: 5px;
+            padding: 6px 9px;
+            margin-top: 5px;
+            font-size: 10px
+        }
+
+        #e-mats .mt-h {
+            color: #f1fa8c;
+            font-size: 10px;
+            margin-bottom: 3px;
+            font-weight: bold
+        }
+
+        .mat-r {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 2px 0
+        }
+
+        .mat-i {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            display: inline-block
+        }
+
+        .mat-ok {
+            color: #50fa7b
+        }
+
+        .mat-no {
+            color: #ff5555
+        }
+
+        #e-rw {
+            color: #8be9fd;
+            font-size: 10px;
+            margin-top: 3px
+        }
+
+        #dlg {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            left: 4%;
+            right: 4%;
+            z-index: 20;
+            background: linear-gradient(180deg, rgba(28, 28, 48, .96), rgba(18, 18, 38, .98));
+            border: 2px solid #bd93f9;
+            border-radius: 9px;
+            padding: var(--dlg-pad-y) var(--dlg-pad-x);
+            box-shadow: 0 3px 16px rgba(189, 147, 249, .15)
+        }
+
+        #dn {
+            color: #bd93f9;
+            font-size: var(--dlg-title);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px
+        }
+
+        #dt {
+            color: #f8f8f2;
+            font-size: var(--dlg-text);
+            min-height: 30px;
+            line-height: 1.4
+        }
+
+        #dc {
+            margin-top: 7px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap
+        }
+
+        .dch {
+            background: #222238;
+            color: #f8f8f2;
+            border: 1px solid #4a4a60;
+            padding: 3px 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: var(--dlg-choice);
+            font-family: inherit;
+            transition: all .12s
+        }
+
+        .dch:hover {
+            background: #4a4a60;
+            border-color: #bd93f9
+        }
+
+        .dch.done {
+            border-color: #50fa7b;
+            color: #50fa7b;
+            opacity: .6
+        }
+
+        #crafting .mi {
+            width: 600px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        #cl {
+            flex: 1;
+            min-width: 190px;
+            max-height: 370px;
+            overflow-y: auto
+        }
+
+        .cr {
+            padding: 4px 7px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 11px;
+            border: 1px solid transparent;
+            margin-bottom: 1px;
+            transition: all .1s
+        }
+
+        .cr:hover {
+            background: rgba(60, 62, 80, .35)
+        }
+
+        .cr.sel {
+            border-color: #50fa7b;
+            background: rgba(80, 250, 123, .07)
+        }
+
+        .cr.lk {
+            opacity: .4;
+            cursor: default
+        }
+
+        .ci {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            flex-shrink: 0
+        }
+
+        #cd {
+            flex: 1;
+            min-width: 190px;
+            padding: 9px;
+            background: rgba(12, 12, 22, .4);
+            border-radius: 6px;
+            border: 1px solid rgba(60, 62, 80, .25)
+        }
+
+        #inventory .mi {
+            width: calc(370px * var(--ui-scale))
+        }
+
+        #ig {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 3px;
+            margin-top: 7px
+        }
+
+        .is {
+            width: calc(33px * var(--ui-scale));
+            height: calc(33px * var(--ui-scale));
+            background: rgba(18, 18, 30, .8);
+            border: 1px solid #222;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-size: calc(7px * var(--ui-scale));
+            color: #333;
+            transition: border-color .1s
+        }
+
+        .is:hover {
+            border-color: #4a4a60
+        }
+
+        .is .ct {
+            position: absolute;
+            bottom: 0;
+            right: 1px;
+            font-size: calc(7px * var(--ui-scale));
+            color: #f8f8f2
+        }
+
+        #book .mi {
+            width: 520px;
+            max-height: 72vh
+        }
+
+        .bk-tab {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 8px
+        }
+
+        .bk-tb {
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            cursor: pointer;
+            font-size: 10px;
+            font-family: inherit;
+            color: #aaa;
+            background: transparent;
+            transition: all .1s
+        }
+
+        .bk-tb.act {
+            border-color: #50fa7b;
+            color: #50fa7b;
+            background: rgba(80, 250, 123, .07)
+        }
+
+        .be {
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(60, 62, 80, .25);
+            font-size: 11px
+        }
+
+        .be .cn {
+            color: #50fa7b;
+            font-weight: bold;
+            font-size: 12px
+        }
+
+        .be .zn {
+            color: #4a4a60;
+            font-size: 9px;
+            margin-left: 6px
+        }
+
+        .be .lk {
+            color: #333;
+            font-style: italic
+        }
+
+        .be .sm {
+            color: #aaa;
+            margin-top: 2px;
+            line-height: 1.4
+        }
+
+        .be .df {
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 4px;
+            font-weight: bold
+        }
+
+        .df-E {
+            background: #2a5a2a;
+            color: #50fa7b
+        }
+
+        .df-M {
+            background: #4a4a20;
+            color: #f1fa8c
+        }
+
+        .df-H {
+            background: #5a2a2a;
+            color: #ff5555
+        }
+
+        .df-L {
+            background: #3a2a5a;
+            color: #bd93f9
+        }
+
+        #pause .mi {
+            width: 250px;
+            text-align: center
+        }
+
+        #pause .eb {
+            display: block;
+            width: 100%;
+            margin: 3px 0
+        }
+
+        #save-ind {
+            position: absolute;
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #50fa7b;
+            font-size: 10px;
+            opacity: 0;
+            transition: opacity .3s;
+            z-index: 6;
+            pointer-events: none
+        }
+
+        .vol-s {
+            width: 60px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+            vertical-align: middle;
+            margin-left: 4px
+        }
+
+        .vol-s::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: #50fa7b;
+            border-radius: 50%;
+            cursor: pointer
+        }
+
+        .kw {
+            color: #ff79c6
+        }
+
+        .ty {
+            color: #8be9fd
+        }
+
+        .st {
+            color: #50fa7b
+        }
+
+        .cm {
+            color: #4a4a60;
+            font-style: italic
+        }
+
+        .bi {
+            color: #bd93f9
+        }
+
+        .nu {
+            color: #f1fa8c
+        }
+
+        #tooltip {
+            display: none;
+            position: absolute;
+            z-index: 60;
+            background: rgba(10, 10, 20, .96);
+            border: 1px solid #50fa7b;
+            border-radius: 5px;
+            padding: 6px 9px;
+            pointer-events: none;
+            font-size: 10px;
+            min-width: 110px;
+            max-width: 210px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .5)
+        }
+
+        #tt-name {
+            color: #50fa7b;
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 2px
+        }
+
+        #tt-type {
+            color: #4a4a60;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: .5px
+        }
+
+        #tt-stats {
+            color: #8be9fd;
+            font-size: 10px;
+            margin-top: 3px;
+            line-height: 1.4;
+            white-space: pre-wrap
+        }
+
+        #tt-desc {
+            color: #aaa;
+            font-size: 9px;
+            margin-top: 3px;
+            line-height: 1.3;
+            font-style: italic
+        }
+
+        .ir {
+            font-size: 10px;
+            margin: 2px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px
+        }
+
+        .ii {
+            width: 13px;
+            height: 13px;
+            border-radius: 2px;
+            display: inline-block
+        }
+
+        .ih {
+            color: #50fa7b
+        }
+
+        .in {
+            color: #ff5555
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrap">
+        <canvas id="c"></canvas>
+        <div id="save-ind">💾 Saved</div>
+        <div id="hud">
+            <div id="hud-left">
+                <div class="hb">❤️ <span id="hp-t">100</span><span class="hp-bar"><span class="hp-fill" id="hp-f"
+                            style="width:100%;background:#50fa7b"></span></span></div>
+                <div class="hb fps-ok" id="fps-h">⚡ <span class="fps-v" id="fps-t">60</span> FPS</div>
+                <div class="hb" id="arm-h" style="display:none">🛡 <span id="arm-t">0</span></div>
+            </div>
+            <div id="hud-center">
+                <div class="hb"><span id="time-t">☀️</span></div>
+                <div class="hb" id="zone-h">📍 Surface</div>
+            </div>
+            <div id="hud-right">
+                <div class="hb">💀 <span id="kills-t">0</span></div>
+                <div class="hb" style="cursor:pointer" onclick="toggleModal('pause')">⏸</div>
+            </div>
+        </div>
+        <div id="hotbar"></div>
+        <div id="ctrl-bar">A/D Move · W/Space Jump · LClick Mine/Attack · RClick Place · E Interact · T Terminal · I Inv
+            · B Book · C Craft</div>
+        <div id="mob-util">
+            <div class="mu" onclick="toggleModal('inventory')">🎒</div>
+            <div class="mu" onclick="openTerminal()">💻</div>
+            <div class="mu" onclick="toggleModal('book')">📖</div>
+            <div class="mu" onclick="toggleModal('crafting')">⚒</div>
+        </div>
+        <div id="joy-zone">
+            <div id="joy-base">
+                <div id="joy-thumb"></div>
+            </div>
+        </div>
+        <div id="act-zone">
+            <div class="ab" id="btn-atk">⚔</div>
+            <div class="ab" id="btn-jmp">▲</div>
+            <div class="ab" id="btn-int">💬</div>
+            <div class="ab" id="btn-mine">⛏</div>
+        </div>
+        <!-- Portrait rotation prompt: a 16:9 game is a useless thin strip in portrait, so on a portrait
+             touch device we cover the screen and ask to rotate. Hidden in landscape (game plays well). -->
+        <div id="rotate-prompt">
+            <div class="rp-icon">📱↻</div>
+            <div><b>Rotate to landscape</b><br>ZigQuest plays best held sideways.</div>
+        </div>
+        <div id="dlg">
+            <div id="dn"></div>
+            <div id="dt"></div>
+            <div id="dc"></div>
+        </div>
+        <div id="tooltip">
+            <div id="tt-name"></div>
+            <div id="tt-type"></div>
+            <div id="tt-stats"></div>
+            <div id="tt-desc"></div>
+        </div>
+        <div class="modal" id="editor">
+            <div class="mi">
+                <div class="mc" onclick="closeEditor()">✕</div>
+                <div class="mt" id="e-title">Code Terminal</div>
+                <div id="ed"></div>
+                <div id="ew">
+                    <div id="el">1</div>
+                    <pre id="ep"></pre><textarea id="et" spellcheck="false"></textarea>
+                </div>
+                <div id="eo"></div>
+                <div id="e-mats">
+                    <div class="mt-h">⚒ Materials Required</div>
+                    <div id="e-mat-list"></div>
+                    <div id="e-rw"></div>
+                </div>
+                <div id="eh" onclick="showHint()"></div>
+                <div style="margin-top:7px;display:flex;gap:5px;flex-wrap:wrap"><button class="eb pr"
+                        onclick="runCh()">▶ Compile & Run</button><button class="eb" onclick="rstCode()">↺
+                        Reset</button><button class="eb" onclick="closeEditor()">Close</button></div>
+            </div>
+        </div>
+        <div class="modal" id="crafting">
+            <div class="mi">
+                <div class="mc" onclick="toggleModal('crafting')">✕</div>
+                <div class="mt">⚒️ Crafting</div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <div id="cl"></div>
+                    <div id="cd">
+                        <p style="color:#4a4a60;font-size:11px">Select a recipe</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="inventory">
+            <div class="mi">
+                <div class="mc" onclick="toggleModal('inventory')">✕</div>
+                <div class="mt">🎒 Inventory</div>
+                <div id="ig"></div>
+            </div>
+        </div>
+        <div class="modal" id="book">
+            <div class="mi">
+                <div class="mc" onclick="toggleModal('book')">✕</div>
+                <div class="mt">📖 Zig Knowledge</div>
+                <div class="bk-tab"><button class="bk-tb act" onclick="bookTab(0,this)">Zig Basics</button><button
+                        class="bk-tb" onclick="bookTab(1,this)">⚔ Forge</button></div>
+                <div id="book-e"></div>
+            </div>
+        </div>
+        <div class="modal" id="pause">
+            <div class="mi">
+                <div class="mc" onclick="toggleModal('pause')">✕</div>
+                <div class="mt">⏸ ZigQuest</div><button class="eb" onclick="toggleModal('pause')">▶
+                    Resume</button><button class="eb" onclick="doSave()">💾 Save</button><button class="eb"
+                    onclick="doLoad()">📂 Load</button><input type="file" id="lf" accept=".json" style="display:none">
+                <div style="margin-top:8px;font-size:10px;color:#4a4a60">🔊 <input type="range" class="vol-s" min="0"
+                        max="100" value="40" oninput="setVol(this.value)"></div>
+                <p style="font-size:8px;color:#333;margin-top:8px">ZigQuest Phase 11</p>
+            </div>
+        </div>
+    </div>
+    <script>if(new URLSearchParams(location.search).has('platform'))document.body.classList.add('force-mobile')</script>
+    <script type="module" src="game.min.js"></script>
+</body>
+
+</html>
